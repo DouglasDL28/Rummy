@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package rummy;
+
+message Stanza {
+    enum MessageType {
+        MESSAGE = 0;
+        DEAL = 1;
+        MELD = 2;
+        DRAW = 3;
+        DISCARD = 4;
+        STATUS = 5;
+    }
+    
+    message Player {
+        required string name = 1;
+        optional int32 id = 2;
+    }
+
+    required MessageType msg_type = 1 [default = MESSAGE];
+    repeated int cards = 2;
+    optional string message = 3;
+    optional Player player = 4;
+    optional bool round_end = 5; // just for STATUS msg_type
+    optional int32 points = 6; // player points when round ends
+    optional bool game_over = 7; // for STATUS msg_type when there is a winner
+}
