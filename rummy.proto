@@ -2,6 +2,11 @@ syntax = "proto2";
 
 package rummy;
 
+option java_multiple_files = true;
+option java_package = "main";
+option java_outer_classname = "RummyProtos";
+
+
 message Stanza {
     enum MessageType {
         MESSAGE = 0;
@@ -18,7 +23,7 @@ message Stanza {
     }
 
     required MessageType msg_type = 1 [default = MESSAGE];
-    repeated int cards = 2;
+    repeated int32 cards = 2;
     optional string message = 3;
     optional Player player = 4;
     optional bool round_end = 5; // just for STATUS msg_type

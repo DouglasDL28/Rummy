@@ -1,16 +1,18 @@
 package main;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.net.*;
  
 // Server class
 public class Server {
-    
-    // Vector to store active clients
-    static Vector<ClientHandler> ar = new Vector<>();
+
+    // Matrix for session management
+    // Rows indicate session and columns session's clients
+    static CopyOnWriteArrayList<CopyOnWriteArrayList<ClientHandler>> sessions = new CopyOnWriteArrayList<>();
      
-    // counter for clients
-    static int i = 0;
+    // counter for sessions
+    static int sessionId = 0;
  
     public static void main(String[] args) throws IOException {
         // server is listening on port 1234
@@ -18,12 +20,10 @@ public class Server {
          
         Socket s;
          
-        // running infinite loop for getting
-        // client request
+        // running infinite loop for getting client request
         while (true) {
 
             try {
-                
                 // Accept the incoming request
                 s = ss.accept();
                 
@@ -36,23 +36,25 @@ public class Server {
                 System.out.println("Creating a new handler for this client...");
                 
                 // Create a new handler object for handling this request.
-                ClientHandler mtch = new ClientHandler(s,"client " + i, dis, dos);
-                
+                ClientHandler mtch = new ClientHandler(s, sessionId, dis, dos);
+
                 // Create a new Thread with this object.
                 Thread t = new Thread(mtch);
                 
-                System.out.println("Adding this client to active client list");
-                
-                // add this client to active clients list
-                ar.add(mtch);
+                System.out.println("Adding this client to session");
+
+                if (sessions.size() > 0 && sessions.size() >= sessionId && sessions.get(sessionId).size() < 4) {
+                    sessions.get(sessionId).add(mtch); // add new player to  existing session
+                } else {
+                    CopyOnWriteArrayList<ClientHandler> currSession = new CopyOnWriteArrayList<>(); // create new session
+                    currSession.add(mtch); // add player to new session
+                    sessions.add(currSession);
+                    sessionId++; // increment sessionId for new session.
+                }
                 
                 // start the thread.
                 t.start();
                 
-                // increment i for new client.
-                // i is used for naming only, and can be replaced
-                // by any naming scheme
-                i++;
                 
             } catch (Exception e) {
                 ss.close();
@@ -65,17 +67,17 @@ public class Server {
 // ClientHandler class
 class ClientHandler implements Runnable {
     Scanner scn = new Scanner(System.in);
-    private String name;
+    private int sessionId;
     final DataInputStream dis;
     final DataOutputStream dos;
     Socket s;
     boolean isloggedin;
      
     // constructor
-    public ClientHandler(Socket s, String name, DataInputStream dis, DataOutputStream dos) {
+    public ClientHandler(Socket s, int sessionId, DataInputStream dis, DataOutputStream dos) {
         this.dis = dis;
         this.dos = dos;
-        this.name = name;
+        this.sessionId = sessionId;
         this.s = s;
         this.isloggedin=true;
     }
@@ -102,6 +104,7 @@ class ClientHandler implements Runnable {
                 String MsgToSend = st.nextToken();
                 String recipient = st.nextToken();
  
+                // TODO: manejar por sesiones en lugar de por clientes individuales
                 // search for the recipient in the connected devices list.
                 // ar is the vector storing client of active users
                 for (ClientHandler mc : Server.ar) {
