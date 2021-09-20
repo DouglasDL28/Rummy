@@ -48,10 +48,16 @@ public class Client {
                 while (true) {
                     try {
                         // read the message sent to this client
+                        /*
+                        * Mensaje: 1~Ola k ase
+                        * 0:1
+                        * 1:Ola k ase
+                        * Jugada: 2~1
+                        * Jugada: 2~0~3,5
+                        * */
                         String msg = dis.readUTF();
                         System.out.println(msg);
                     } catch (IOException e) {
-  
                         e.printStackTrace();
                     }
                 }
