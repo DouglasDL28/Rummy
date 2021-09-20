@@ -1,10 +1,13 @@
 package main;
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.Scanner;
-  
+
+import main.Stanza;
+
 public class Client {
-    
+
     final static int ServerPort = 1234;
   
     public static void main(String args[]) throws UnknownHostException, IOException {
@@ -58,6 +61,7 @@ public class Client {
                         String msg = dis.readUTF();
                         System.out.println(msg);
                     } catch (IOException e) {
+  
                         e.printStackTrace();
                     }
                 }
