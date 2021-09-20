@@ -93,75 +93,44 @@ class GameMaster {
 }
 
 class Table {
-    public ArrayList<String> cards;
+    public ArrayList<Card> cards;
     public ArrayList<Player> players;
     public ArrayList<Melds> melds;
     public int currentPlayer;
     public boolean isGameGoingOn;
     public boolean hasWinner;
-    public String topCard;
+    public Card topCard;
 
     public Table(ArrayList<Player> players) {
         this.players = players;
         this.melds = new ArrayList<>();
-        this.cards = new ArrayList<>(){{
-            add("\u26602");
-            add("\u26603");
-            add("\u26604");
-            add("\u26605");
-            add("\u26606");
-            add("\u26607");
-            add("\u26608");
-            add("\u26609");
-            add("\u266010");
-            add("\u2660J");
-            add("\u2660Q");
-            add("\u2660K");
-            add("\u2660A");
-
-            add("\u26662");
-            add("\u26663");
-            add("\u26664");
-            add("\u26665");
-            add("\u26666");
-            add("\u26667");
-            add("\u26668");
-            add("\u26669");
-            add("\u266610");
-            add("\u2666J");
-            add("\u2666Q");
-            add("\u2666K");
-            add("\u2666A");
-
-            add("\u26632");
-            add("\u26633");
-            add("\u26634");
-            add("\u26635");
-            add("\u26636");
-            add("\u26637");
-            add("\u26638");
-            add("\u26639");
-            add("\u266310");
-            add("\u2663J");
-            add("\u2663Q");
-            add("\u2663K");
-            add("\u2663A");
-
-            add("\u27642");
-            add("\u27643");
-            add("\u27644");
-            add("\u27645");
-            add("\u27646");
-            add("\u27647");
-            add("\u27648");
-            add("\u27649");
-            add("\u276410");
-            add("\u2764J");
-            add("\u2764Q");
-            add("\u2764K");
-            add("\u2764A");
-
+        this.cards = new ArrayList<>();
+        ArrayList<String> suits = new ArrayList<>(){{
+            add("HEARTS");
+            add("CLUBS");
+            add("DIAMONDS");
+            add("SPADES");
         }};
+        ArrayList<String> cards = new ArrayList<>(){{
+            add("2");
+            add("3");
+            add("4");
+            add("5");
+            add("6");
+            add("7");
+            add("8");
+            add("9");
+            add("10");
+            add("J");
+            add("Q");
+            add("K");
+            add("A");
+        }};
+        for(String card: cards){
+            for(String suit: suits){
+                this.cards.add(new Card(suit, card));
+            }
+        }
         Random rand = new Random();
         int startIndex = rand.nextInt(this.players.size());
         this.currentPlayer = startIndex;
@@ -191,25 +160,25 @@ class Table {
         return true;
     }
 
-    public ArrayList<String> pickCards(int amountOfCards){
-        ArrayList<String> cards = new ArrayList<>();
+    public ArrayList<Card> pickCards(int amountOfCards){
+        ArrayList<Card> cards = new ArrayList<>();
         for(int i = 0; i < amountOfCards; i++){
             cards.add(pickCard());
         }
         return cards;
     }
 
-    public boolean receiveCard(String card){
+    public boolean receiveCard(Card card){
         this.cards.add(card);
         return true;
     }
 
-    public String pickCard(){
+    public Card pickCard(){
         Random rand = new Random();
         return cards.remove(rand.nextInt(cards.size()));
     }
 
-    public boolean placeCardAtTheTop(String card){
+    public boolean placeCardAtTheTop(Card card){
         this.topCard = card;
         return true;
     }
@@ -217,7 +186,7 @@ class Table {
 
 class Player {
     public ClientHandler handler;
-    public ArrayList<String> cards;
+    public ArrayList<Card> cards;
     public Table table;
     public boolean canPlay;
     public boolean waitingForInput;
@@ -251,7 +220,7 @@ class Player {
         return this.handler.lastInput == null;
     }
 
-    public boolean startTurn(String topCard, String randomCard){
+    public boolean startTurn(Card topCard, Card randomCard){
         this.canPlay = true;
         Scanner startTurnScanner = new Scanner(System.in);
         this.handler.sendMessage("La carta actual es " + topCard);
@@ -292,7 +261,7 @@ class Player {
         return true;
     }
 
-    public String endTurn(){
+    public Card endTurn(){
         this.handler.sendMessage("Ingrese el valor de carta a regresar");
         while (true){
             if (lastInput != null){
@@ -300,7 +269,7 @@ class Player {
                 break;
             }
         }
-        String cardToDiscard = this.cards.get(Integer.parseInt(this.lastInput));
+        Card cardToDiscard = this.cards.get(Integer.parseInt(this.lastInput));
         this.table.placeCardAtTheTop(cardToDiscard);
         this.cards.remove(cardToDiscard);
         this.lastInput = null;
@@ -309,24 +278,65 @@ class Player {
         return cardToDiscard;
     }
 
-    public boolean receiveCards(ArrayList<String> cards){
+    public boolean receiveCards(ArrayList<Card> cards){
         this.cards.addAll(cards);
         this.handler.sendMessage("Received cards boi " + this.cards.toString());
         return true;
     }
 
-    public boolean receiveCard(String card){
+    public boolean receiveCard(Card card){
         this.cards.add(card);
         return true;
     }
 }
 
+class Card{
+    public String suit;
+    public String value;
+
+    public Card(String suit, String value) {
+        this.suit = suit;
+        this.value = value;
+    }
+
+    public String getSuit() {
+        return suit;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getAscii(String suit){
+        switch (suit){
+            case("HEARTS") -> {
+                return "❤";
+            }
+            case("SPADES") -> {
+                return "♠";
+            }
+            case("DIAMONDS") -> {
+                return "\u2666";
+            }
+            case("CLUBS") -> {
+                return "\u2663";
+            }
+        }
+        return "";
+    }
+
+    @Override
+    public String toString() {
+        return getAscii(this.suit) + value;
+    }
+}
+
 class Melds {
-    public ArrayList<String> cards;
-    public Melds(ArrayList<String> cards) {
+    public ArrayList<Card> cards;
+    public Melds(ArrayList<Card> cards) {
         this.cards = cards;
     }
-    public boolean addCardToMeld(String card){
+    public boolean addCardToMeld(Card card){
         this.cards.add(card);
         return true;
     }
