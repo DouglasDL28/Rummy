@@ -9,7 +9,7 @@ public class Client {
     final static int ServerPort = 1234;
   
     public static void main(String args[]) throws UnknownHostException, IOException {
-
+        //Ingrese nombre
         Scanner scn = new Scanner(System.in);
           
         // getting localhost ip
@@ -50,11 +50,10 @@ public class Client {
                     try {
                         // read the message sent to this client
                         /*
-                        * Mensaje: 1~Ola k ase
-                        * 0:1
-                        * 1:Ola k ase
-                        * Jugada: 2~1
-                        * Jugada: 2~0~3,5
+                        * Mensaje: 0~Mensaje
+                        * Jugadas:
+                        *   Jalar o devolver carta: 1~0~Índice de carta
+                        *
                         * */
                         String msg = dis.readUTF();
                         System.out.println(msg);
@@ -65,9 +64,14 @@ public class Client {
                 }
             }
         });
-  
+
+        Scanner nameScanner = new Scanner(System.in);
+        System.out.println("Favor ingresar el nombre de usuario ");
+        String newName = nameScanner.nextLine();
+        System.out.println("Para enviar mensajes únicamente es necesario ingresar m~Mensaje");
+//        dos.writeUTF("3~name");
         sendMessage.start();
         readMessage.start();
-  
+        dos.writeUTF("3~" + newName);
     }
 }
