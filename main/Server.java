@@ -5,10 +5,10 @@ import java.net.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
- 
-// Server class
+
+/** Server class */
 public class Server {
-    
+
     // Vector to store active clients
     static Vector<ClientHandler> ar = new Vector<>();
      
@@ -23,8 +23,7 @@ public class Server {
 
         GameMaster gm = new GameMaster();
          
-        // running infinite loop for getting
-        // client request
+        // running infinite loop for getting client request
         while (true) {
 
             try {
@@ -138,7 +137,6 @@ class Table implements Runnable {
         Random rand = new Random();
         int startIndex = rand.nextInt(this.players.size());
         this.currentPlayer = startIndex;
-        this.startGame();
     }
 
     public boolean startGame(){
@@ -181,16 +179,44 @@ class Table implements Runnable {
         return true;
     }
 
+    public boolean checkWinner(Player player) {
+        if (player.cards.size() <= 0)
+            return true;
+
+        return false;
+    }
+
+    public void gameOver(Player winner) {
+        for (Player player : this.players) {
+            player.handler.sendMessage(winner.name + " es el ganador!");
+        }
+        this.hasWinner = true;
+    }
+
     @Override
     public void run() {
+
+        this.startGame();
+
         while(!this.hasWinner){
             Player currentPlayer = this.players.get(this.currentPlayer);
             currentPlayer.startTurn(topCard, this.pickCard());
-            while(!currentPlayer.play()){
 
+            while(!currentPlayer.play());
+
+            if (checkWinner(currentPlayer)) {
+                this.gameOver(currentPlayer);
+                break;
             }
+
             currentPlayer.endTurn();
-            this.currentPlayer = (this.currentPlayer + 1)%this.players.size();
+
+            if (checkWinner(currentPlayer)) {
+                this.gameOver(currentPlayer);
+                break;
+            }
+
+            this.currentPlayer = (this.currentPlayer + 1) % this.players.size();
         }
     }
 }
@@ -239,7 +265,7 @@ class Player {
 
     public boolean startTurn(Card topCard, Card randomCard){
         this.canPlay = true;
-        Scanner startTurnScanner = new Scanner(System.in);
+        // Scanner startTurnScanner = new Scanner(System.in);
         this.handler.sendMessage("La carta actual es " + topCard);
         this.handler.sendMessage("Ingrese 1 para seleccionar la carta superior \n Cualquier otro ingreso selecciona una carta al azar");
         while (true){
@@ -303,7 +329,7 @@ class Player {
     }
 
     public boolean play(){
-        Scanner playScanner = new Scanner(System.in);
+        // Scanner playScanner = new Scanner(System.in);
         this.handler.sendMessage("Ingrese 1 para crear un nuevo juego \n Ingrese 2 para agregar cartas a un juego existente \n Ingrese 3 para terminar su turno");
         while (true){
             if(this.lastInput != null){
@@ -328,6 +354,10 @@ class Player {
                     this.handler.sendMessage("Valid Meld");
                     this.table.melds.add(new Melds((ArrayList<Card>) cardsToMeld));
                     this.removeCards((ArrayList<Card>) cardsToMeld);
+
+                    if (this.cards.size() <= 0) // end turn if no cards left
+                        return true;
+
                 }else {
                     this.handler.sendMessage("Not valid");
                 }
@@ -355,6 +385,9 @@ class Player {
                 if(this.canAddCardsToMeld(this.table.melds.get(Integer.parseInt(meldId)), cardsToMeld)){
                     this.table.melds.get(Integer.parseInt(meldId)).addCards((ArrayList<Card>) cardsToMeld);
                     this.removeCards((ArrayList<Card>) cardsToMeld);
+
+                    if (this.cards.size() <= 0) // end turn if no cards left
+                    return true;
                 }
                 this.lastInput = null;
                 return false;
@@ -590,11 +623,11 @@ class ClientHandler implements Runnable {
                     break;
                 }
                 System.out.println("Received this " + received);
-                String[] receivedParts = received.split("~");
-                if(receivedParts[0].equals("3")){
-                    this.player.setName(receivedParts[1]);
-                }else if (receivedParts[0].equals("2")) {
-                    this.broadCastMessage(receivedParts[1]);
+                String[] request = received.split("~");
+                if(request[0].equals("3")){
+                    this.player.setName(request[1]);
+                }else if (request[0].equals("2")) {
+                    this.broadCastMessage(request[1]);
                 }else{
                     if(this.player.canPlay){
                         System.out.println("Person who plays sent " + received);
