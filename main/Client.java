@@ -1,7 +1,6 @@
 package main;
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.util.Scanner;
 
 public class Client {
@@ -56,6 +55,7 @@ public class Client {
                         *
                         * */
                         String msg = dis.readUTF();
+
                         System.out.println(msg);
                     } catch (IOException e) {
   

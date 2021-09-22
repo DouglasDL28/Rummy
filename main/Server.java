@@ -8,12 +8,6 @@ import java.util.stream.Collectors;
 
 /** Server class */
 public class Server {
-
-    // Vector to store active clients
-    static Vector<ClientHandler> ar = new Vector<>();
-     
-    // counter for clients
-    static int i = 0;
  
     public static void main(String[] args) throws IOException {
         // server is listening on port 1234
@@ -40,23 +34,16 @@ public class Server {
                 System.out.println("Creating a new handler for this client...");
 
                 // Create a new handler object for handling this request.
-                ClientHandler mtch = new ClientHandler(s,"client " + i, dis, dos);
+                ClientHandler mtch = new ClientHandler(s, "client", dis, dos);
 
                 // Create a new Thread with this object.
                 Thread t = new Thread(mtch);
 
                 System.out.println("Adding this client to active client list");
 
-                // add this client to active clients list
-                ar.add(mtch);
-
                 // start the thread.
                 t.start();
 
-                // increment i for new client.
-                // i is used for naming only, and can be replaced
-                // by any naming scheme
-                i++;
                 Player newPlayer = new Player(mtch);
                 mtch.addPlayer(newPlayer);
                 gm.addPlayer(newPlayer);
@@ -330,7 +317,12 @@ class Player {
 
     public boolean play(){
         // Scanner playScanner = new Scanner(System.in);
-        this.handler.sendMessage("Ingrese 1 para crear un nuevo juego \n Ingrese 2 para agregar cartas a un juego existente \n Ingrese 3 para terminar su turno");
+        this.handler.sendMessage(
+            "Ingrese 1 para crear un nuevo juego \n"
+            + "Ingrese 2 para agregar cartas a un juego existente \n"
+            + "Ingrese 3 para terminar su turno"
+        );
+
         while (true){
             if(this.lastInput != null){
                 System.out.println("Received " + this.lastInput);
@@ -340,10 +332,10 @@ class Player {
         switch (this.lastInput) {
             case ("1") -> {
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese las cartas a agregar por su índice y separados por coma");
+                this.handler.sendMessage("Ingrese las cartas a agregar por su índice y separados por coma: ");
                 while (true){
                     if(this.lastInput != null){
-                        System.out.println("Received " + this.lastInput);
+                        System.out.println("Received: " + this.lastInput);
                         break;
                     }
                 }
@@ -365,19 +357,19 @@ class Player {
             }
             case ("2") -> {
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese el juego a agregar ");
+                this.handler.sendMessage("Ingrese el juego a agregar: ");
                 while (true){
                     if(this.lastInput != null){
-                        System.out.println("Received " + this.lastInput);
+                        System.out.println("Received: " + this.lastInput);
                         break;
                     }
                 }
                 String meldId = this.lastInput;
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese las cartas a agregar ");
+                this.handler.sendMessage("Ingrese las cartas a agregar: ");
                 while (true){
                     if(this.lastInput != null){
-                        System.out.println("Received " + this.lastInput);
+                        System.out.println("Received: " + this.lastInput);
                         break;
                     }
                 }
@@ -622,8 +614,10 @@ class ClientHandler implements Runnable {
                     this.s.close();
                     break;
                 }
+
                 System.out.println("Received this " + received);
                 String[] request = received.split("~");
+
                 if(request[0].equals("3")){
                     this.player.setName(request[1]);
                 }else if (request[0].equals("2")) {
