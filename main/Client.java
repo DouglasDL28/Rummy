@@ -1,4 +1,5 @@
 package main;
+import java.beans.ConstructorProperties;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
@@ -6,7 +7,8 @@ import java.util.Scanner;
 public class Client {
 
     final static int ServerPort = 1234;
-  
+    public static volatile boolean isTurn = false;
+    
     public static void main(String args[]) throws UnknownHostException, IOException {
         //Ingrese nombre
         Scanner scn = new Scanner(System.in);
@@ -23,13 +25,20 @@ public class Client {
   
         // sendMessage thread
         Thread sendMessage = new Thread(new Runnable() {
+
             @Override
             public void run() {
                 while (true) {
-  
+
                     // read the message to deliver.
                     String msg = scn.nextLine();
-                      
+
+                    if (isTurn){
+                        msg = "3~" + msg;
+                    } else {
+                        msg = "1~" + msg;
+                    }
+ 
                     try {
                         // write on the output stream
                         dos.writeUTF(msg);
@@ -54,11 +63,29 @@ public class Client {
                         *   Jalar o devolver carta: 1~0~Índice de carta
                         *
                         * */
-                        String msg = dis.readUTF();
+                        String response = dis.readUTF();
 
-                        System.out.println(msg);
+                        System.out.println("Received this " + response);
+                        String[] payload = response.split("~");
+
+                        switch (payload[0]) {
+                            case "1": // message
+                                System.out.println(payload[1]);
+                                break;
+
+                            case "2": // turn
+                                isTurn = true;
+                                break;
+
+                            case "4": // end turn
+                                isTurn = false;
+                                break;
+                        
+                            default:
+                                break;
+                        }
+
                     } catch (IOException e) {
-  
                         e.printStackTrace();
                     }
                 }
@@ -72,6 +99,6 @@ public class Client {
 //        dos.writeUTF("3~name");
         sendMessage.start();
         readMessage.start();
-        dos.writeUTF("3~" + newName);
+        dos.writeUTF("0~" + newName);
     }
 }

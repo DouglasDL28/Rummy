@@ -187,13 +187,14 @@ class Table implements Runnable {
 
         while(!this.hasWinner){
             Player currentPlayer = this.players.get(this.currentPlayer);
+            currentPlayer.handler.sendMessage("2~"); // start turn
             currentPlayer.startTurn(topCard, this.pickCard());
 
-            while(!currentPlayer.play());
-
-            if (checkWinner(currentPlayer)) {
-                this.gameOver(currentPlayer);
-                break;
+            while(!currentPlayer.play()) {
+                if (checkWinner(currentPlayer)) {
+                    this.gameOver(currentPlayer);
+                    break;
+                }
             }
 
             currentPlayer.endTurn();
@@ -202,6 +203,8 @@ class Table implements Runnable {
                 this.gameOver(currentPlayer);
                 break;
             }
+
+            currentPlayer.handler.sendMessage("4~"); // end turn
 
             this.currentPlayer = (this.currentPlayer + 1) % this.players.size();
         }
@@ -318,10 +321,13 @@ class Player {
     public boolean play(){
         // Scanner playScanner = new Scanner(System.in);
         this.handler.sendMessage(
-            "Ingrese 1 para crear un nuevo juego \n"
-            + "Ingrese 2 para agregar cartas a un juego existente \n"
-            + "Ingrese 3 para terminar su turno"
+            "Es tu turno. Selecciona una opción: \n" +
+            "1. Crear un nuevo juego \n" +
+            "2. Agregar cartas a un juego existente \n" +
+            "3. Terminar su turno"
         );
+
+        this.lastInput = null;
 
         while (true){
             if(this.lastInput != null){
@@ -379,7 +385,7 @@ class Player {
                     this.removeCards((ArrayList<Card>) cardsToMeld);
 
                     if (this.cards.size() <= 0) // end turn if no cards left
-                    return true;
+                        return true;
                 }
                 this.lastInput = null;
                 return false;
@@ -406,6 +412,7 @@ class Player {
         this.lastInput = null;
         this.canPlay = false;
         this.handler.sendCurrentHand();
+
         return cardToDiscard;
     }
 
@@ -618,31 +625,21 @@ class ClientHandler implements Runnable {
                 System.out.println("Received this " + received);
                 String[] request = received.split("~");
 
-                if(request[0].equals("3")){
-                    this.player.setName(request[1]);
-                }else if (request[0].equals("2")) {
-                    this.broadCastMessage(request[1]);
-                }else{
-                    if(this.player.canPlay){
-                        System.out.println("Person who plays sent " + received);
-                        this.player.lastInput = received;
-                    }else{
-                        this.sendMessage("Favor espere su turno");
-                    }
+                switch (request[0]) {
+                    case "0": // name
+                        this.player.setName(request[1]);
+                        break;
+                    case "1": // message
+                        this.broadCastMessage(request[1]);
+                        break;
+                    case "3": // play
+                        this.player.lastInput = request[1];
+                        break;
+                
+                    default:
+                        break;
                 }
-                // break the string into message and recipient part
-//                StringTokenizer st = new StringTokenizer(received, "#");
-//                String MsgToSend = st.nextToken();
-//                String recipient = st.nextToken();
- 
-                // search for the recipient in the connected devices list.
-                // ar is the vector storing client of active users
-                /*for (ClientHandler mc : Server.ar) {
-                    // if the recipient is found, write on its
-                    // output stream
-                    System.out.println("mc " + mc.name);
-                    mc.dos.writeUTF(this.name+" : " + received);
-                }*/
+
             } catch (IOException e) {
                 System.out.println("Error");
                 e.printStackTrace();
