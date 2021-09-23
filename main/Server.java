@@ -262,7 +262,7 @@ class Player {
         this.handler.sendCurrentHand();
 
         this.handler.sendMessage("TOP~" + topCard);
-        this.handler.sendMessage("Enter 1 to take top card \nAny other input will give a random card from the pile...");
+        this.handler.sendMessage("\nEnter '1' to take top card \nAny other input will give a random card from the pile...");
         while (true){
             if(lastInput != null){
                 System.out.println("Received " + this.lastInput);
@@ -279,10 +279,10 @@ class Player {
     }
 
     public boolean areCardsConsecutive(List<Card> cardsToCheck){
-        this.handler.sendMessage("Checking if consecutive");
+        //this.handler.sendMessage("Checking if consecutive");
         List<Card> sortedList = cardsToCheck.stream().sorted().collect(Collectors.toList());
-        this.handler.sendMessage("Cards to check " + sortedList.toString());
-        this.handler.sendMessage("Length to check " + Integer.toString(sortedList.size()));
+        //this.handler.sendMessage("Cards to check " + sortedList.toString());
+        //this.handler.sendMessage("Length to check " + Integer.toString(sortedList.size()));
         for(int i=1; i<sortedList.size();i++){
             if(sortedList.get(i).getValue() - sortedList.get(i-1).getValue() != 1 || !sortedList.get(i).getSymbol().equals(sortedList.get(i - 1).getSymbol())){
                 return false;
@@ -292,7 +292,7 @@ class Player {
     }
 
     public boolean areCardsTheSame(List<Card> cardsToCheck){
-        this.handler.sendMessage("Checking if same");
+        //this.handler.sendMessage("Checking if same");
         for(int i=1; i<cardsToCheck.size();i++){
             if(!(cardsToCheck.get(i).getValue() == cardsToCheck.get(i-1).getValue())){
                 return false;
@@ -325,10 +325,10 @@ class Player {
     public boolean play(){
         this.handler.sendCurrentHand();
         this.handler.sendMessage(
-            "Es tu turno. Selecciona una opción: \n" +
-            "1. Crear un nuevo juego \n" +
-            "2. Agregar cartas a un juego existente \n" +
-            "3. Terminar su turno"
+            "Choose an option: \n" +
+            "1. Create new meld \n" +
+            "2. Add card(s) to existing meld \n" +
+            "3. End turn"
         );
 
         this.lastInput = null;
@@ -343,7 +343,7 @@ class Player {
         switch (this.lastInput) {
             case ("1") -> {
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese las cartas a agregar por su índice y separados por coma: ");
+                this.handler.sendMessage("Enter the cards, separated by commas: ");
                 while (true){
                     if(this.lastInput != null){
                         System.out.println("Received: " + this.lastInput);
@@ -354,20 +354,20 @@ class Player {
                 this.lastInput = null;
                 this.handler.sendMessage(cardsToMeld.toString());
                 if(this.isNewMeldValid(cardsToMeld)){
-                    this.handler.sendMessage("Valid Meld");
+                    this.handler.sendMessage("\nValid meld!");
                     this.table.melds.add(new Melds((ArrayList<Card>) cardsToMeld));
                     this.removeCards((ArrayList<Card>) cardsToMeld);
 
                     if (this.cards.size() <= 0) // end turn if no cards left
                         return true;
                 } else {
-                    this.handler.sendMessage("Not valid");
+                    this.handler.sendMessage("Meld is not valid, try again or end turn");
                 }
                 return false;
             }
             case ("2") -> {
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese el juego a agregar: ");
+                this.handler.sendMessage("Enter the meld's index: ");
                 while (true){
                     if(this.lastInput != null){
                         System.out.println("Received: " + this.lastInput);
@@ -376,7 +376,7 @@ class Player {
                 }
                 String meldId = this.lastInput;
                 this.lastInput = null;
-                this.handler.sendMessage("Ingrese las cartas a agregar: ");
+                this.handler.sendMessage("Enter cards to add: ");
                 while (true){
                     if(this.lastInput != null){
                         System.out.println("Received: " + this.lastInput);
@@ -403,7 +403,7 @@ class Player {
     }
 
     public Card endTurn(){
-        this.handler.sendMessage("Ingrese el índice de carta a regresar");
+        this.handler.sendMessage("Enter the card's index");
         while (true){
             if (this.lastInput != null){
                 System.out.println("Received" + this.lastInput);

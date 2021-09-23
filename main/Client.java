@@ -35,7 +35,7 @@ public class Client {
         Scanner nameScanner = new Scanner(System.in);
 
         // read username from user input
-        System.out.println("Ingrese el nombre de usuario: ");
+        System.out.println("Enter your username: ");
         String newName = nameScanner.nextLine();
 
         // scanner for incoming messages from server
@@ -83,8 +83,10 @@ public class Client {
                             isTurn = true;
                         }
                         // end turn
-                        case "4" ->
-                                isTurn = false;
+                        case "4" -> {
+                            System.out.println("\nWaiting for other players to end their turn...");
+                            isTurn = false;
+                        }
                         // player cards
                         case "CARDS" -> {
                             System.out.println("Your current cards are: ");
@@ -199,7 +201,7 @@ public class Client {
         // send username to table
         dos.writeUTF("0~" + newName);
 
-        System.out.println("Para enviar mensajes ingrese m~<mensaje>\n");
+        System.out.println("To send a message enter 'm~<mensaje>'\n");
 
         // start thread for listening and sending messages
         sendMessage.start();
