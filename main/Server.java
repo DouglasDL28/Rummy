@@ -69,14 +69,17 @@ class GameMaster {
     public boolean addPlayer(Player player){
         playersWaiting.add(player);
         if(playersWaiting.size() == 2){
-            player.handler.sendMessage("Game is starting now");
+            player.handler.sendMessage("Game is starting now!");
+
             Table newTable = new Table(playersWaiting);
             Thread t = new Thread(newTable);
+
             tables.add(newTable);
             t.start();
-            playersWaiting=new ArrayList<>();
-        }else{
-            player.handler.sendMessage("Game is starting soon");
+
+            playersWaiting = new ArrayList<>();
+        } else{
+            player.handler.sendMessage("Game is starting soon...");
         }
         return true;
     }
@@ -255,9 +258,11 @@ class Player {
 
     public boolean startTurn(Card topCard, Card randomCard){
         this.canPlay = true;
-        // Scanner startTurnScanner = new Scanner(System.in);
-        this.handler.sendMessage("La carta actual es " + topCard);
-        this.handler.sendMessage("Ingrese 1 para seleccionar la carta superior \n Cualquier otro ingreso selecciona una carta al azar");
+
+        this.handler.sendCurrentHand();
+
+        this.handler.sendMessage("TOP~" + topCard);
+        this.handler.sendMessage("Enter 1 to take top card \nAny other input will give a random card from the pile...");
         while (true){
             if(lastInput != null){
                 System.out.println("Received " + this.lastInput);
@@ -270,7 +275,6 @@ class Player {
             this.cards.add(randomCard);
         }
         this.lastInput = null;
-        this.handler.sendCurrentHand();
         return true;
     }
 
@@ -319,7 +323,7 @@ class Player {
     }
 
     public boolean play(){
-        // Scanner playScanner = new Scanner(System.in);
+        this.handler.sendCurrentHand();
         this.handler.sendMessage(
             "Es tu turno. Selecciona una opción: \n" +
             "1. Crear un nuevo juego \n" +
@@ -335,6 +339,7 @@ class Player {
                 break;
             }
         }
+
         switch (this.lastInput) {
             case ("1") -> {
                 this.lastInput = null;
@@ -355,8 +360,7 @@ class Player {
 
                     if (this.cards.size() <= 0) // end turn if no cards left
                         return true;
-
-                }else {
+                } else {
                     this.handler.sendMessage("Not valid");
                 }
                 return false;
@@ -399,7 +403,7 @@ class Player {
     }
 
     public Card endTurn(){
-        this.handler.sendMessage("Ingrese el valor de carta a regresar");
+        this.handler.sendMessage("Ingrese el índice de carta a regresar");
         while (true){
             if (this.lastInput != null){
                 System.out.println("Received" + this.lastInput);
@@ -409,16 +413,15 @@ class Player {
         Card cardToDiscard = this.cards.get(Integer.parseInt(this.lastInput));
         this.table.placeCardAtTheTop(cardToDiscard);
         this.cards.remove(cardToDiscard);
+
         this.lastInput = null;
         this.canPlay = false;
-        this.handler.sendCurrentHand();
 
         return cardToDiscard;
     }
 
     public boolean receiveCards(ArrayList<Card> cards){
         this.cards.addAll(cards);
-        this.handler.sendMessage("Received cards boi " + this.cards.toString());
         return true;
     }
 
@@ -463,10 +466,10 @@ class Card implements Comparable<Card>{
                 return "♠";
             }
             case("DIAMONDS") -> {
-                return "\u2666";
+                return "♦";
             }
             case("CLUBS") -> {
-                return "\u2663";
+                return "♣";
             }
         }
         return "";
@@ -579,14 +582,14 @@ class ClientHandler implements Runnable {
         try {
             this.dos.writeUTF(message);
             return true;
-        }catch (Exception e){
+        } catch (Exception e){
             return false;
         }
     }
 
     public boolean sendCurrentHand(){
-        this.sendMessage("The current melds are" + this.player.table.melds);
-        this.sendMessage("Your current cards are" + this.player.cards);
+        this.sendMessage("MELDS~" + this.player.table.melds);
+        this.sendMessage("CARDS~" + this.player.cards);
         return true;
     }
 
