@@ -1,7 +1,7 @@
 # Rummy
 Implementación de Rummy para el curso de Redes 2021.  
 Realizado por: 
-* Douglas de León 18
+* Douglas de León 18037
 * Rodrigo Garoz 18102
 * Gerardo Méndez 18239
 
