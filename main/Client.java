@@ -5,20 +5,42 @@ import java.net.*;
 import java.util.*;
 import java.io.IOException;
 
-/*import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.TextGraphics;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
-*/
 
 public class Client {
 
     final static int ServerPort = 1234;
     public static volatile boolean isTurn = false;
+
+    public static String rules = """
+            
+            Rules:
+            * You will be dealt 7 cards from the deck, and the goal is to be the first person to use them all.
+            * Each round, you´ll pick between grabbing the top card of the common pile, or being dealt a random one from the rest of the deck.
+            * After that, you can use your cards by arranging new melds on the table or adding your cards to a meld previously created by you or another player.
+            * Your turn ends when you can´t/don´t want to do anything in the table, and return a card to be placed on top of the common pile.
+            
+            There are two types of melds: 3 or more cards with the same number or a succesion of cards from the same suit.
+            Example: ❤3, ❤4, ❤5 is a valid meld, as well as ❤J, ♠J, ♦J, while ❤3, ♦4, ❤5 and ❤J, ♠J, ♦Q aren´t.
+            
+            If you want to chat with the other players in the room, simply type '/m <message>'
+            You can always return to check the rules and commands by typing '/h'
+            """
+            ;
+
+    public static String welcome = """
+             ______    __   __  __   __  __   __  __   __
+            |    _ |  |  | |  ||  |_|  ||  |_|  ||  | |  |
+            |   | ||  |  | |  ||       ||       ||  |_|  |
+            |   |_||_ |  |_|  ||       ||       ||       |
+            |    __  ||       ||       ||       ||_     _|
+            |   |  | ||       || ||_|| || ||_|| |  |   |
+            |___|  |_||_______||_|   |_||_|   |_|  |___|
+            
+            Welcome to the Rummy console implementation!
+            
+            This game is simple and fun to play with friends, or other people online.
+            """
+            ;
 
     public static void main(String[] args) throws IOException {
         // getting localhost ip
@@ -33,6 +55,9 @@ public class Client {
 
         // name scanner
         Scanner nameScanner = new Scanner(System.in);
+
+        // welcome page
+        System.out.println(welcome + rules);
 
         // read username from user input
         System.out.println("Enter your username: ");
@@ -49,9 +74,15 @@ public class Client {
                 String msg = scn.nextLine();
 
                 if (isTurn){
-                    msg = "3~" + msg;
+                    if(!msg.equals("")) msg = "3~" + msg;
                 } else {
-                    msg = "1~" + msg;
+                    String[] command = msg.split(" ", 2);
+
+                    switch (command[0]){
+                        case "/m" -> msg = "1~" + command[1];
+                        case "/h" -> System.out.println(rules);
+                        default -> System.out.println("Sorry, command '" + command[0] + "' not recognized.");
+                    }
                 }
 
                 try {
@@ -89,7 +120,7 @@ public class Client {
                         }
                         // player cards
                         case "CARDS" -> {
-                            System.out.println("Your current cards are: ");
+                            System.out.println("\nYour current cards are: ");
 
                             String stringCards = payload[1].replace("[", "");
                             stringCards = stringCards.replace("]", "");
@@ -112,8 +143,10 @@ public class Client {
                             System.out.println("\n");
                         }
                         // table melds
-                        case "MELDS" ->
-                                System.out.println();
+                        case "MELDS" -> {
+                            System.out.println("\nThe current melds are: ");
+                            System.out.println(payload[1]);
+                        }
                         // table top card
                         case "TOP" ->
                                 System.out.println("Card on top: \n" + "|   " + payload[1] + "   |");
@@ -127,85 +160,12 @@ public class Client {
                 }
             }
         });
-/*
-        Thread GUI = new Thread(() -> {
-            DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
-            Screen screen = null;
-
-            try {
-
-                Terminal terminal = defaultTerminalFactory.createTerminal();
-                screen = new TerminalScreen(terminal);
-                TerminalSize terminalSize = screen.getTerminalSize();
-
-                screen.startScreen();
-
-                screen.setCursorPosition(new TerminalPosition(1, terminalSize.getRows()));
-
-                while(true) {
-                    KeyStroke keyStroke = screen.pollInput();
-                    if (keyStroke != null && (keyStroke.getKeyType() == KeyType.Escape || keyStroke.getKeyType() == KeyType.EOF)) {
-                        break;
-                    }
-
-                    String sizeLabel = "          Chat";
-
-                    TerminalPosition labelBoxTopLeft = new TerminalPosition(terminalSize.getColumns() - 24, 0);
-                    TerminalSize labelBoxSize = new TerminalSize(24, terminalSize.getRows());
-                    TerminalPosition labelBoxTopRightCorner = labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 1);
-
-                    TextGraphics textGraphics = screen.newTextGraphics();
-
-                    textGraphics.fillRectangle(labelBoxTopLeft, labelBoxSize, ' ');
-
-                    textGraphics.drawLine(
-                            labelBoxTopLeft.withRelativeColumn(1),
-                            labelBoxTopLeft.withRelativeColumn(labelBoxSize.getColumns() - 1),
-                            Symbols.DOUBLE_LINE_HORIZONTAL);
-                    textGraphics.drawLine(
-                            labelBoxTopLeft.withRelativeRow(2).withRelativeColumn(1),
-                            labelBoxTopLeft.withRelativeRow(2).withRelativeColumn(labelBoxSize.getColumns() - 1),
-                            Symbols.DOUBLE_LINE_HORIZONTAL);
-                    textGraphics.drawLine(
-                            labelBoxTopLeft.withRelativeRow(3).withRelativeColumn(0),
-                            labelBoxTopLeft.withRelativeRow(labelBoxSize.getRows()).withRelativeColumn(0),
-                            Symbols.DOUBLE_LINE_VERTICAL
-                    );
-                    textGraphics.drawLine(
-                            labelBoxTopLeft.withRelativeRow(3).withRelativeColumn(labelBoxSize.getColumns() - 1),
-                            labelBoxTopLeft.withRelativeRow(labelBoxSize.getRows()).withRelativeColumn(labelBoxSize.getColumns() - 1),
-                            Symbols.DOUBLE_LINE_VERTICAL
-                    );
-
-                    textGraphics.setCharacter(labelBoxTopLeft, Symbols.DOUBLE_LINE_TOP_LEFT_CORNER);
-                    textGraphics.setCharacter(labelBoxTopLeft.withRelativeRow(1), Symbols.DOUBLE_LINE_VERTICAL);
-                    textGraphics.setCharacter(labelBoxTopLeft.withRelativeRow(2), Symbols.DOUBLE_LINE_T_RIGHT);
-                    textGraphics.setCharacter(labelBoxTopRightCorner, Symbols.DOUBLE_LINE_TOP_RIGHT_CORNER);
-                    textGraphics.setCharacter(labelBoxTopRightCorner.withRelativeRow(1), Symbols.DOUBLE_LINE_VERTICAL);
-                    textGraphics.setCharacter(labelBoxTopRightCorner.withRelativeRow(2), Symbols.DOUBLE_LINE_T_LEFT);
-
-                    textGraphics.putString(labelBoxTopLeft.withRelative(1, 1), sizeLabel);
-
-                    for(String message: messages){
-                        textGraphics.putString(labelBoxTopLeft.withRelative(1, 1), ">>" + message);
-                    }
-
-                    screen.refresh();
-                    Thread.yield();
-                }
-            } catch(IOException exc) {
-                exc.printStackTrace();
-            }
-        });*/
 
         // send username to table
         dos.writeUTF("0~" + newName);
 
-        System.out.println("To send a message enter 'm~<mensaje>'\n");
-
         // start thread for listening and sending messages
         sendMessage.start();
         readMessage.start();
-        //GUI.start();
     }
 }

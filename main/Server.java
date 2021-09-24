@@ -68,18 +68,24 @@ class GameMaster {
 
     public boolean addPlayer(Player player){
         playersWaiting.add(player);
-        if(playersWaiting.size() == 2){
-            player.handler.sendMessage("Game is starting now!");
-
+        if(playersWaiting.size() == 3){
             Table newTable = new Table(playersWaiting);
             Thread t = new Thread(newTable);
 
             tables.add(newTable);
             t.start();
 
+            for(Player plyr: playersWaiting){
+                try {
+                    plyr.handler.dos.writeUTF("\nGame is starting now!");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
             playersWaiting = new ArrayList<>();
         } else{
-            player.handler.sendMessage("Game is starting soon...");
+            player.handler.sendMessage("\nWaiting for more players, game is starting soon...");
         }
         return true;
     }
@@ -87,6 +93,7 @@ class GameMaster {
 
 class Table implements Runnable {
     public ArrayList<Card> cards;
+    public ArrayList<Card> forgotten = new ArrayList<>();
     public ArrayList<Player> players;
     public ArrayList<Melds> melds;
     public int currentPlayer;
@@ -161,6 +168,11 @@ class Table implements Runnable {
 
     public Card pickCard(){
         Random rand = new Random();
+        if(cards.size() == 0) {
+            Collections.shuffle(forgotten);
+            cards = forgotten;
+        }
+
         return cards.remove(rand.nextInt(cards.size()));
     }
 
@@ -178,7 +190,7 @@ class Table implements Runnable {
 
     public void gameOver(Player winner) {
         for (Player player : this.players) {
-            player.handler.sendMessage(winner.name + " es el ganador!");
+            player.handler.sendMessage(winner.name + " is the winner!");
         }
         this.hasWinner = true;
     }
@@ -262,7 +274,7 @@ class Player {
         this.handler.sendCurrentHand();
 
         this.handler.sendMessage("TOP~" + topCard);
-        this.handler.sendMessage("\nEnter '1' to take top card \nAny other input will give a random card from the pile...");
+        this.handler.sendMessage("\nEnter '1' to take top card \nAny other input will draw a random card from the pile...");
         while (true){
             if(lastInput != null){
                 System.out.println("Received " + this.lastInput);
@@ -273,18 +285,23 @@ class Player {
             this.cards.add(topCard);
         } else {
             this.cards.add(randomCard);
+            this.table.forgotten.add(topCard);
         }
         this.lastInput = null;
         return true;
     }
 
     public boolean areCardsConsecutive(List<Card> cardsToCheck){
-        //this.handler.sendMessage("Checking if consecutive");
         List<Card> sortedList = cardsToCheck.stream().sorted().collect(Collectors.toList());
-        //this.handler.sendMessage("Cards to check " + sortedList.toString());
-        //this.handler.sendMessage("Length to check " + Integer.toString(sortedList.size()));
         for(int i=1; i<sortedList.size();i++){
-            if(sortedList.get(i).getValue() - sortedList.get(i-1).getValue() != 1 || !sortedList.get(i).getSymbol().equals(sortedList.get(i - 1).getSymbol())){
+            if(sortedList.get(i).getValue() - sortedList.get(i-1).getValue() != 1){
+                System.out.println("NOT CONSECUTIVE");
+                return false;
+            }
+            if(!sortedList.get(i).getSuit().equals(sortedList.get(i - 1).getSuit())){
+                System.out.println("NOT SAME SUIT");
+                System.out.print(sortedList.get(i).getSymbol());
+                System.out.print(sortedList.get(i - 1).getSymbol());
                 return false;
             }
         }
@@ -292,7 +309,6 @@ class Player {
     }
 
     public boolean areCardsTheSame(List<Card> cardsToCheck){
-        //this.handler.sendMessage("Checking if same");
         for(int i=1; i<cardsToCheck.size();i++){
             if(!(cardsToCheck.get(i).getValue() == cardsToCheck.get(i-1).getValue())){
                 return false;
@@ -352,7 +368,7 @@ class Player {
                 }
                 List<Card> cardsToMeld = Arrays.stream(lastInput.split(",")).map(s -> this.cards.get(Integer.parseInt(s))).collect(Collectors.toList());
                 this.lastInput = null;
-                this.handler.sendMessage(cardsToMeld.toString());
+                this.handler.sendMessage("\nSent meld: " + cardsToMeld.toString());
                 if(this.isNewMeldValid(cardsToMeld)){
                     this.handler.sendMessage("\nValid meld!");
                     this.table.melds.add(new Melds((ArrayList<Card>) cardsToMeld));
@@ -361,7 +377,7 @@ class Player {
                     if (this.cards.size() <= 0) // end turn if no cards left
                         return true;
                 } else {
-                    this.handler.sendMessage("Meld is not valid, try again or end turn");
+                    this.handler.sendMessage("\nMeld is not valid, try again or end turn");
                 }
                 return false;
             }
@@ -398,12 +414,16 @@ class Player {
                 this.lastInput = null;
                 return true;
             }
+            default -> {
+                this.handler.sendMessage("\nOption is invalid, please pick a valid one");
+                this.lastInput = null;
+                return false;
+            }
         }
-        return true;
     }
 
     public Card endTurn(){
-        this.handler.sendMessage("Enter the card's index");
+        this.handler.sendMessage("\nEnter the index of the card to discard:");
         while (true){
             if (this.lastInput != null){
                 System.out.println("Received" + this.lastInput);
@@ -597,7 +617,7 @@ class ClientHandler implements Runnable {
         ArrayList<Player> playerInTables = this.player.table.players;
         try{
             for(Player currentPlayer:playerInTables){
-                currentPlayer.handler.dos.writeUTF(this.player.name + " " + message);
+                currentPlayer.handler.dos.writeUTF(this.player.name + ": " + message);
             }
             return true;
         }catch (Exception e){
