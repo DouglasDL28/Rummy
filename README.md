@@ -10,7 +10,7 @@ Este repositorio cuenta con una implementación del juego *Rummy* realizado con 
 
 ## Ejecución
 1. Instalar (si no se tiene instalado) un JDK 15, 16 o 17 (puede funcionar con JDKs más abajo pero no fue probado con esos)
-2. Dirigirse al directorio 
+2. Dirigirse al directorio /path/donde/se/encuentre/Rummy/main
 3. En terminal ejecutar el comando <pre>C:/> java Server.java</pre>
 4. En una segunda terminal (y cuantas más se necesiten para otros clientes) ejecutar <pre>C:/> java Client.java</pre>
 
