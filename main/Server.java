@@ -1,4 +1,5 @@
 package main;
+
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -12,6 +13,8 @@ public class Server {
     public static void main(String[] args) throws IOException {
         // server is listening on port 1234
         ServerSocket ss = new ServerSocket(1234);
+
+        System.out.println("Server listening on port 1234...");
          
         Socket s;
 
@@ -190,7 +193,7 @@ class Table implements Runnable {
 
     public void gameOver(Player winner) {
         for (Player player : this.players) {
-            player.handler.sendMessage(winner.name + " is the winner!");
+            player.handler.sendMessage("Game finished, " + winner.name + " is the winner!");
         }
         this.hasWinner = true;
     }
@@ -273,7 +276,7 @@ class Player {
 
         this.handler.sendCurrentHand();
 
-        this.handler.sendMessage("TOP~" + topCard);
+        this.handler.sendMessage("5~TOP~" + topCard);
         this.handler.sendMessage("\nEnter '1' to take top card \nAny other input will draw a random card from the pile...");
         while (true){
             if(lastInput != null){
@@ -300,8 +303,6 @@ class Player {
             }
             if(!sortedList.get(i).getSuit().equals(sortedList.get(i - 1).getSuit())){
                 System.out.println("NOT SAME SUIT");
-                System.out.print(sortedList.get(i).getSymbol());
-                System.out.print(sortedList.get(i - 1).getSymbol());
                 return false;
             }
         }
@@ -331,7 +332,7 @@ class Player {
             if (((cardToCheck.getValue() - Collections.max(sortedMeld).getValue() == 1) || (cardToCheck.getValue() - Collections.min(sortedMeld).getValue() == -1)) && cardToCheck.getSymbol().equals(meldToAdd.cards.get(0).getSymbol())){
                 return false;
             }
-            if(!cardToCheck.getSymbol().equals(sortedMeld.get(0).getSymbol())){
+            if(!cardToCheck.getSuit().equals(sortedMeld.get(0).getSuit())){
                 return false;
             }
         }
@@ -480,16 +481,16 @@ class Card implements Comparable<Card>{
     public String getAsciiSuit(){
         switch (this.suit){
             case("HEARTS") -> {
-                return "❤";
+                return "\u2764";
             }
             case("SPADES") -> {
-                return "♠";
+                return "\u2660";
             }
             case("DIAMONDS") -> {
-                return "♦";
+                return "\u2666";
             }
             case("CLUBS") -> {
-                return "♣";
+                return "\u2663";
             }
         }
         return "";
@@ -608,8 +609,8 @@ class ClientHandler implements Runnable {
     }
 
     public boolean sendCurrentHand(){
-        this.sendMessage("MELDS~" + this.player.table.melds);
-        this.sendMessage("CARDS~" + this.player.cards);
+        this.sendMessage("5~MELDS~" + this.player.table.melds);
+        this.sendMessage("5~CARDS~" + this.player.cards);
         return true;
     }
 

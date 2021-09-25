@@ -20,7 +20,7 @@ public class Client {
             * Your turn ends when you can´t/don´t want to do anything in the table, and return a card to be placed on top of the common pile.
             
             There are two types of melds: 3 or more cards with the same number or a succesion of cards from the same suit.
-            Example: ❤3, ❤4, ❤5 is a valid meld, as well as ❤J, ♠J, ♦J, while ❤3, ♦4, ❤5 and ❤J, ♠J, ♦Q aren´t.
+            Example: \u27643, \u27644, \u27645 is a valid meld, as well as \u2764J, \u2660J, \u2666J, while \u27643, \u26664, \u27645 and \u2764J, \u2660J, \u2666Q aren´t.
             
             If you want to chat with the other players in the room, simply type '/m <message>'
             You can always return to check the rules and commands by typing '/h'
@@ -81,6 +81,9 @@ public class Client {
                     switch (command[0]){
                         case "/m" -> msg = "1~" + command[1];
                         case "/h" -> System.out.println(rules);
+                        case "" -> {
+                            //pass
+                        }
                         default -> System.out.println("Sorry, command '" + command[0] + "' not recognized.");
                     }
                 }
@@ -118,38 +121,42 @@ public class Client {
                             System.out.println("\nWaiting for other players to end their turn...");
                             isTurn = false;
                         }
-                        // player cards
-                        case "CARDS" -> {
-                            System.out.println("\nYour current cards are: ");
+                        case "5" -> {
+                            switch(payload[1]){
+                                // player cards
+                                case "CARDS" -> {
+                                    System.out.println("\nYour current cards are: ");
 
-                            String stringCards = payload[1].replace("[", "");
-                            stringCards = stringCards.replace("]", "");
-                            stringCards = stringCards.replace(" ", "");
+                                    String stringCards = payload[2].replace("[", "");
+                                    stringCards = stringCards.replace("]", "");
+                                    stringCards = stringCards.replace(" ", "");
 
-                            String[] cards = stringCards.split(",");
+                                    String[] cards = stringCards.split(",");
 
-                            for(String card: cards){
-                                System.out.print("|   " + card + "   |  ");
-                            }
-                            System.out.println();
+                                    for(String card: cards){
+                                        System.out.print("|   " + card + "   |  ");
+                                    }
+                                    System.out.println();
 
-                            for(int i = 0; i < cards.length; i++){
-                                if (cards[i].length() == 3) {
-                                    System.out.print("      " + i + "      ");
-                                } else {
-                                    System.out.print("     " + i + "      ");
+                                    for(int i = 0; i < cards.length; i++){
+                                        if (cards[i].length() == 3) {
+                                            System.out.print("      " + i + "      ");
+                                        } else {
+                                            System.out.print("     " + i + "      ");
+                                        }
+                                    }
+                                    System.out.println("\n");
                                 }
+                                // table melds
+                                case "MELDS" -> {
+                                    System.out.println("\nThe current melds are: ");
+                                    System.out.println(payload[2]);
+                                }
+                                // table top card
+                                case "TOP" ->
+                                        System.out.println("Card on top: \n" + "|   " + payload[2] + "   |");
                             }
-                            System.out.println("\n");
                         }
-                        // table melds
-                        case "MELDS" -> {
-                            System.out.println("\nThe current melds are: ");
-                            System.out.println(payload[1]);
-                        }
-                        // table top card
-                        case "TOP" ->
-                                System.out.println("Card on top: \n" + "|   " + payload[1] + "   |");
                         // information
                         default ->
                             System.out.println(response);
