@@ -15,4 +15,6 @@ Se utilizó un protocolo simple para manejar la comunicación entre el cliente y
 |---|---|
 |0|Cambio de nombre del usuario actual|
 |1|Mensaje a todos los usuarios en la mesa|
+|2|Cambio de turno|
 |3|Movimiento en el juego|
+|5|Información general del juego (TOP CARD, MELDS, CARDS)|
